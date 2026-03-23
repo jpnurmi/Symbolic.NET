@@ -9,4 +9,4 @@ name = "symbolic_native"
 crate-type = ["cdylib"]
 
 [dependencies]
-symbolic-demangle = { version = "12", features = ["cpp", "msvc", "rust"] }
+symbolic-demangle = { version = "12", default-features = false, features = ["cpp", "msvc", "rust"] }
