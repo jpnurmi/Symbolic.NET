@@ -64,7 +64,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: native-${{ matrix.rid }}
-          path: runtimes/${{ matrix.rid }}
+          path: runtimes/
           if-no-files-found: error
 
   test:
@@ -102,7 +102,7 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: native-${{ matrix.rid }}
-          path: runtimes/${{ matrix.rid }}
+          path: runtimes/
 
       - name: Test
         run: dotnet test ${{ matrix.arch && format('-a {0}', matrix.arch) || '' }}
@@ -126,7 +126,7 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: native-${{ matrix.rid }}
-          path: runtimes/${{ matrix.rid }}
+          path: runtimes/
 
       - name: Write test scripts
         run: |
