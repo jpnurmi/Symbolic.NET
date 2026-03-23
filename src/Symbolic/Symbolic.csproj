@@ -16,10 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="build/Symbolic.NET.targets" Pack="true" PackagePath="build/" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="../../runtimes/**/native/*" Pack="true" PackagePath="runtimes/">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>runtimes/%(RecursiveDir)%(Filename)%(Extension)</Link>
