@@ -109,7 +109,8 @@ jobs:
           # x86 glibc via i386 Docker on x64 runner
           - rid: linux-x86
             runner: ubuntu-latest
-            image: i386/debian:bullseye-slim
+            platform: linux/386
+            image: debian:bullseye-slim
             setup: |
               apt-get update && apt-get install -y wget
               wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
@@ -118,7 +119,8 @@ jobs:
           # ARM glibc via QEMU on x64 runner
           - rid: linux-arm
             runner: ubuntu-latest
-            image: arm32v7/debian:bullseye-slim
+            platform: linux/arm/v7
+            image: debian:bullseye-slim
             setup: |
               apt-get update && apt-get install -y wget
               wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
@@ -128,7 +130,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up QEMU
-        if: contains(matrix.image, 'arm')
         uses: docker/setup-qemu-action@v3
 
       - uses: actions/download-artifact@v4
@@ -139,6 +140,7 @@ jobs:
       - name: Test
         run: |
           docker run --rm \
+            --platform ${{ matrix.platform }} \
             -v "${{ github.workspace }}:/work" \
             -w /work \
             ${{ matrix.image }} \
