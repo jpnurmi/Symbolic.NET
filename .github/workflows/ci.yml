@@ -77,7 +77,7 @@ jobs:
         include:
           # Native runners
           - { rid: win-x64,     os: windows-latest }
-          - { rid: win-x86,     os: windows-latest }
+          - { rid: win-x86,     os: windows-latest, arch: x86 }
           - { rid: win-arm64,   os: windows-11-arm }
           - { rid: linux-x64,   os: ubuntu-latest }
           - { rid: linux-arm64, os: ubuntu-24.04-arm }
@@ -89,6 +89,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+          architecture: ${{ matrix.arch || '' }}
 
       - uses: actions/download-artifact@v4
         with:
