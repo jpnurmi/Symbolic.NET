@@ -90,12 +90,14 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Install x86 .NET runtime
+      - name: Install x86 .NET
         if: matrix.arch == 'x86'
         shell: pwsh
         run: |
+          $dir = "${env:ProgramFiles(x86)}\dotnet"
           Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
-          ./dotnet-install.ps1 -Channel 10.0 -Architecture x86 -Runtime dotnet
+          ./dotnet-install.ps1 -Channel 10.0 -Architecture x86 -InstallDir $dir
+          echo "DOTNET_ROOT_X86=$dir" | Out-File -Append $env:GITHUB_ENV
 
       - uses: actions/download-artifact@v8
         with:
