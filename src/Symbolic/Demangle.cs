@@ -6,7 +6,7 @@ namespace Sentry
     public static class Symbolic
     {
         /// <summary>
-        /// Demangles a C++, Rust, or Swift symbol name.
+        /// Demangles a C++ or Rust symbol name.
         /// Returns the demangled name, or null if the symbol could not be demangled.
         /// </summary>
         public static string? Demangle(string symbol)

@@ -5,7 +5,6 @@ Cross-platform C++ symbol demangler for .NET, powered by [getsentry/symbolic](ht
 Supports demangling of:
 - C++ (Itanium ABI and MSVC)
 - Rust (legacy and v0)
-- Swift
 
 ## Supported platforms
 
