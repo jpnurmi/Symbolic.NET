@@ -46,7 +46,7 @@ namespace Sentry
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 os = "osx";
             else
-                os = IsMusl() ? "linux-musl" : "linux";
+                os = "linux";
 
             string arch = RuntimeInformation.OSArchitecture switch
             {
@@ -66,19 +66,6 @@ namespace Sentry
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return ".dll";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return ".dylib";
             return ".so";
-        }
-
-        private static bool IsMusl()
-        {
-            try
-            {
-                string? desc = RuntimeInformation.RuntimeIdentifier;
-                return desc != null && desc.Contains("musl");
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

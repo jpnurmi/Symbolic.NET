@@ -13,9 +13,6 @@ declare -A TARGETS=(
     ["linux-x64"]="x86_64-unknown-linux-gnu"
     ["linux-arm"]="armv7-unknown-linux-gnueabihf"
     ["linux-arm64"]="aarch64-unknown-linux-gnu"
-    ["linux-musl-x64"]="x86_64-unknown-linux-musl"
-    ["linux-musl-arm"]="armv7-unknown-linux-musleabihf"
-    ["linux-musl-arm64"]="aarch64-unknown-linux-musl"
     ["osx-x64"]="x86_64-apple-darwin"
     ["osx-arm64"]="aarch64-apple-darwin"
 )

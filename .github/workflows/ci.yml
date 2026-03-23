@@ -22,10 +22,6 @@ jobs:
           - { rid: linux-x64,       os: ubuntu-latest,    target: x86_64-unknown-linux-gnu,       lib: libsymbolic_native.so,    cross: true }
           - { rid: linux-arm,       os: ubuntu-latest,    target: armv7-unknown-linux-gnueabihf,  lib: libsymbolic_native.so,    cross: true }
           - { rid: linux-arm64,     os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu,      lib: libsymbolic_native.so }
-          # Linux musl (zigbuild — Rust musl targets don't support cdylib natively)
-          - { rid: linux-musl-x64,  os: ubuntu-latest,    target: x86_64-unknown-linux-musl,      lib: libsymbolic_native.so,    zigbuild: true }
-          - { rid: linux-musl-arm,  os: ubuntu-latest,    target: armv7-unknown-linux-musleabihf, lib: libsymbolic_native.so,    zigbuild: true }
-          - { rid: linux-musl-arm64,os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl,     lib: libsymbolic_native.so,    zigbuild: true }
           # macOS (cargo)
           - { rid: osx-x64,         os: macos-26-intel,   target: x86_64-apple-darwin,            lib: libsymbolic_native.dylib }
           - { rid: osx-arm64,       os: macos-latest,     target: aarch64-apple-darwin,           lib: libsymbolic_native.dylib }
@@ -45,16 +41,6 @@ jobs:
           workspaces: native
           key: ${{ matrix.target }}
 
-      - name: Install zig
-        if: matrix.zigbuild
-        uses: mlugg/setup-zig@v2
-
-      - name: Install cargo-zigbuild
-        if: matrix.zigbuild
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-zigbuild
-
       - name: Install cross
         if: matrix.cross
         run: cargo install cross --locked
@@ -64,13 +50,8 @@ jobs:
         working-directory: native
         run: cross build --release --target ${{ matrix.target }}
 
-      - name: Build (zigbuild)
-        if: matrix.zigbuild
-        working-directory: native
-        run: cargo zigbuild --release --target ${{ matrix.target }}
-
       - name: Build (cargo)
-        if: ${{ !matrix.cross && !matrix.zigbuild }}
+        if: ${{ !matrix.cross }}
         working-directory: native
         run: cargo build --release --target ${{ matrix.target }}
 
@@ -140,30 +121,6 @@ jobs:
             image: arm32v7/debian:bullseye-slim
             setup: |
               apt-get update && apt-get install -y wget
-              wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
-            path: /usr/share/dotnet
-          # x64 musl via Alpine on x64 runner
-          - rid: linux-musl-x64
-            runner: ubuntu-latest
-            image: mcr.microsoft.com/dotnet/sdk:8.0-alpine
-            setup: ""
-            path: /usr/share/dotnet
-          # ARM musl via QEMU on x64 runner
-          - rid: linux-musl-arm
-            runner: ubuntu-latest
-            image: arm32v7/alpine:3.19
-            setup: |
-              apk add --no-cache bash wget icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib
-              wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
-            path: /usr/share/dotnet
-          # ARM64 musl via Alpine on native ARM64 runner
-          - rid: linux-musl-arm64
-            runner: ubuntu-24.04-arm
-            image: arm64v8/alpine:3.19
-            setup: |
-              apk add --no-cache bash wget icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib
               wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
               bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
             path: /usr/share/dotnet
