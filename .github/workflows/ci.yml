@@ -26,7 +26,7 @@ jobs:
           - { rid: osx-x64,         os: macos-26-intel,   target: x86_64-apple-darwin,            lib: libsymbolic_native.dylib }
           - { rid: osx-arm64,       os: macos-latest,     target: aarch64-apple-darwin,           lib: libsymbolic_native.dylib }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.cross }}
@@ -61,7 +61,7 @@ jobs:
           mkdir -p runtimes/${{ matrix.rid }}/native
           cp native/target/${{ matrix.target }}/release/${{ matrix.lib }} runtimes/${{ matrix.rid }}/native/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: native-${{ matrix.rid }}
           path: runtimes/${{ matrix.rid }}
@@ -84,14 +84,14 @@ jobs:
           - { rid: osx-x64,     os: macos-26-intel }
           - { rid: osx-arm64,   os: macos-latest }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
           architecture: ${{ matrix.arch || '' }}
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: native-${{ matrix.rid }}
           path: runtimes/${{ matrix.rid }}
@@ -110,12 +110,12 @@ jobs:
           - { rid: linux-x86,  runner: ubuntu-latest, platform: linux/386,    image: "debian:bullseye-slim" }
           - { rid: linux-arm,  runner: ubuntu-latest, platform: linux/arm/v7, image: "debian:bullseye-slim", dotnet: true }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: native-${{ matrix.rid }}
           path: runtimes/${{ matrix.rid }}
@@ -169,13 +169,13 @@ jobs:
     needs: [native, test, test-docker]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: native-*
           path: runtimes
@@ -184,7 +184,7 @@ jobs:
       - name: Pack
         run: dotnet pack src/Symbolic/Symbolic.csproj -c Release -o artifacts
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nuget
           path: artifacts/*.nupkg
