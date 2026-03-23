@@ -27,12 +27,23 @@ namespace Sentry
             string prefix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "lib";
             string fileName = $"{prefix}{LibraryName}{ext}";
 
-            string assemblyDir = Path.GetDirectoryName(assembly.Location) ?? ".";
-            string path = Path.Combine(assemblyDir, "runtimes", rid, "native", fileName);
+            string relativePath = Path.Combine("runtimes", rid, "native", fileName);
 
-            if (NativeLibrary.TryLoad(path, out IntPtr handle))
+            string[] searchDirs =
+            [
+                Path.GetDirectoryName(assembly.Location) ?? "",
+                AppContext.BaseDirectory,
+                Directory.GetCurrentDirectory(),
+            ];
+
+            foreach (string dir in searchDirs)
             {
-                return handle;
+                if (string.IsNullOrEmpty(dir))
+                    continue;
+
+                string path = Path.Combine(dir, relativePath);
+                if (NativeLibrary.TryLoad(path, out IntPtr handle))
+                    return handle;
             }
 
             return IntPtr.Zero;

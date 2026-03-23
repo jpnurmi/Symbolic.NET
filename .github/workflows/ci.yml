@@ -107,10 +107,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # x86 glibc via i386 Docker on x64 runner
           - { rid: linux-x86,  runner: ubuntu-latest, platform: linux/386,    image: "debian:bullseye-slim" }
-          # ARM glibc via QEMU on x64 runner
-          - { rid: linux-arm,  runner: ubuntu-latest, platform: linux/arm/v7, image: "debian:bullseye-slim" }
+          - { rid: linux-arm,  runner: ubuntu-latest, platform: linux/arm/v7, image: "debian:bullseye-slim", dotnet: true }
     steps:
       - uses: actions/checkout@v4
 
@@ -122,9 +120,19 @@ jobs:
           name: native-${{ matrix.rid }}
           path: runtimes/${{ matrix.rid }}
 
-      - name: Write test script
+      - name: Write test scripts
         run: |
-          cat > /tmp/test.sh << 'SCRIPT'
+          cat > /tmp/test-native.sh << 'SCRIPT'
+          #!/bin/bash
+          set -euo pipefail
+          apt-get update && apt-get install -y gcc
+          cd /work
+          gcc -o /tmp/test-native native/test.c -L runtimes/$RID/native -lsymbolic_native -Wl,-rpath,runtimes/$RID/native
+          /tmp/test-native
+          SCRIPT
+          chmod +x /tmp/test-native.sh
+
+          cat > /tmp/test-dotnet.sh << 'SCRIPT'
           #!/bin/bash
           set -euo pipefail
           apt-get update && apt-get install -y wget
@@ -134,16 +142,27 @@ jobs:
           cd /work
           dotnet test
           SCRIPT
-          chmod +x /tmp/test.sh
+          chmod +x /tmp/test-dotnet.sh
 
-      - name: Test
+      - name: Test (native)
         run: |
           docker run --rm \
             --platform ${{ matrix.platform }} \
             -v "${{ github.workspace }}:/work" \
-            -v /tmp/test.sh:/tmp/test.sh \
+            -e RID=${{ matrix.rid }} \
+            -v /tmp/test-native.sh:/tmp/test-native.sh \
             ${{ matrix.image }} \
-            bash /tmp/test.sh
+            bash /tmp/test-native.sh
+
+      - name: Test (.NET)
+        if: matrix.dotnet
+        run: |
+          docker run --rm \
+            --platform ${{ matrix.platform }} \
+            -v "${{ github.workspace }}:/work" \
+            -v /tmp/test-dotnet.sh:/tmp/test-dotnet.sh \
+            ${{ matrix.image }} \
+            bash /tmp/test-dotnet.sh
 
   pack:
     name: Pack NuGet
