@@ -45,11 +45,11 @@ jobs:
           workspaces: native
           key: ${{ matrix.target }}
 
-      - name: Install cargo-zigbuild
+      - name: Install zig and cargo-zigbuild
         if: matrix.zigbuild
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-zigbuild
+          tool: cargo-zigbuild,zig
 
       - name: Install cross
         if: matrix.cross
