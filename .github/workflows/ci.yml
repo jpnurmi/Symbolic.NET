@@ -137,7 +137,7 @@ jobs:
           set -euo pipefail
           apt-get update && apt-get install -y wget libicu-dev
           wget -q https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
-          bash /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
+          bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet
           export PATH=/usr/share/dotnet:$PATH
           cd /work
           dotnet test
