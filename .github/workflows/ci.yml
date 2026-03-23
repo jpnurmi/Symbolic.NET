@@ -224,4 +224,6 @@ jobs:
           path: /tmp/nuget-feed
 
       - name: Test
-        run: dotnet test test/Symbolic.IntegrationTests/Symbolic.IntegrationTests.csproj --source /tmp/nuget-feed --source https://api.nuget.org/v3/index.json
+        run: |
+          dotnet restore test/Symbolic.IntegrationTests/Symbolic.IntegrationTests.csproj --source /tmp/nuget-feed --source https://api.nuget.org/v3/index.json
+          dotnet test test/Symbolic.IntegrationTests/Symbolic.IntegrationTests.csproj --no-restore
