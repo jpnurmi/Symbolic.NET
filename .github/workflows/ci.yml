@@ -108,25 +108,9 @@ jobs:
       matrix:
         include:
           # x86 glibc via i386 Docker on x64 runner
-          - rid: linux-x86
-            runner: ubuntu-latest
-            platform: linux/386
-            image: debian:bullseye-slim
-            setup: |
-              apt-get update && apt-get install -y wget
-              wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
-            path: /usr/share/dotnet
+          - { rid: linux-x86,  runner: ubuntu-latest, platform: linux/386,    image: "debian:bullseye-slim" }
           # ARM glibc via QEMU on x64 runner
-          - rid: linux-arm
-            runner: ubuntu-latest
-            platform: linux/arm/v7
-            image: debian:bullseye-slim
-            setup: |
-              apt-get update && apt-get install -y wget
-              wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
-            path: /usr/share/dotnet
+          - { rid: linux-arm,  runner: ubuntu-latest, platform: linux/arm/v7, image: "debian:bullseye-slim" }
     steps:
       - uses: actions/checkout@v4
 
@@ -138,17 +122,28 @@ jobs:
           name: native-${{ matrix.rid }}
           path: runtimes/${{ matrix.rid }}
 
+      - name: Write test script
+        run: |
+          cat > /tmp/test.sh << 'SCRIPT'
+          #!/bin/bash
+          set -euo pipefail
+          apt-get update && apt-get install -y wget
+          wget -q https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
+          bash /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
+          export PATH=/usr/share/dotnet:$PATH
+          cd /work
+          dotnet test
+          SCRIPT
+          chmod +x /tmp/test.sh
+
       - name: Test
         run: |
           docker run --rm \
             --platform ${{ matrix.platform }} \
             -v "${{ github.workspace }}:/work" \
-            -w /work \
+            -v /tmp/test.sh:/tmp/test.sh \
             ${{ matrix.image }} \
-            sh -c 'set -e
-          ${{ matrix.setup }}
-          export PATH=${{ matrix.path }}:$PATH
-          dotnet test'
+            bash /tmp/test.sh
 
   pack:
     name: Pack NuGet
