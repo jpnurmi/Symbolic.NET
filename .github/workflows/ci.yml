@@ -174,7 +174,7 @@ jobs:
 
   pack:
     name: Pack NuGet
-    needs: [native, test, test-docker]
+    needs: native
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
