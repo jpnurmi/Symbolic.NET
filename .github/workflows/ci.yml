@@ -22,9 +22,9 @@ jobs:
           - { rid: linux-x64,       os: ubuntu-latest,    target: x86_64-unknown-linux-gnu,       lib: libsymbolic_native.so,    cross: true }
           - { rid: linux-arm,       os: ubuntu-latest,    target: armv7-unknown-linux-gnueabihf,  lib: libsymbolic_native.so,    cross: true }
           - { rid: linux-arm64,     os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu,      lib: libsymbolic_native.so }
-          # Linux musl (cross)
-          - { rid: linux-musl-x64,  os: ubuntu-latest,    target: x86_64-unknown-linux-musl,      lib: libsymbolic_native.so,    cross: true }
-          - { rid: linux-musl-arm,  os: ubuntu-latest,    target: armv7-unknown-linux-musleabihf, lib: libsymbolic_native.so,    cross: true }
+          # Linux musl (cargo + musl-tools / zigbuild)
+          - { rid: linux-musl-x64,  os: ubuntu-latest,    target: x86_64-unknown-linux-musl,      lib: libsymbolic_native.so,    musl: true }
+          - { rid: linux-musl-arm,  os: ubuntu-latest,    target: armv7-unknown-linux-musleabihf, lib: libsymbolic_native.so,    zigbuild: true }
           - { rid: linux-musl-arm64,os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl,     lib: libsymbolic_native.so,    musl: true }
           # macOS (cargo)
           - { rid: osx-x64,         os: macos-26-intel,   target: x86_64-apple-darwin,            lib: libsymbolic_native.dylib }
@@ -49,6 +49,12 @@ jobs:
         if: matrix.musl
         run: sudo apt-get update && sudo apt-get install -y musl-tools
 
+      - name: Install cargo-zigbuild
+        if: matrix.zigbuild
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+
       - name: Install cross
         if: matrix.cross
         run: cargo install cross --locked
@@ -58,8 +64,13 @@ jobs:
         working-directory: native
         run: cross build --release --target ${{ matrix.target }}
 
+      - name: Build (zigbuild)
+        if: matrix.zigbuild
+        working-directory: native
+        run: cargo zigbuild --release --target ${{ matrix.target }}
+
       - name: Build (cargo)
-        if: ${{ !matrix.cross }}
+        if: ${{ !matrix.cross && !matrix.zigbuild }}
         working-directory: native
         run: cargo build --release --target ${{ matrix.target }}
 
