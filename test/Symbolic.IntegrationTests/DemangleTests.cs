@@ -11,13 +11,13 @@ namespace Symbolic.IntegrationTests
         [InlineData("_RNvCskwGfYPst2Cb_3foo3bar", "foo::bar")]
         public void Demangle_ReturnsExpected(string mangled, string expected)
         {
-            Assert.Equal(expected, Symbolic.Demangle(mangled));
+            Assert.Equal(expected, Sentry.Symbolic.Demangle(mangled));
         }
 
         [Fact]
         public void Demangle_UnknownSymbol_ReturnsNull()
         {
-            Assert.Null(Symbolic.Demangle("main"));
+            Assert.Null(Sentry.Symbolic.Demangle("main"));
         }
     }
 }
