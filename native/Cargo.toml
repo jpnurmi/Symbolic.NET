@@ -1,0 +1,12 @@
+[package]
+name = "symbolic-native"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "symbolic_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+symbolic-demangle = { version = "12", features = ["cpp", "msvc", "rust", "swift"] }

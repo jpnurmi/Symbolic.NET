@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Sentry</RootNamespace>
+    <PackageId>Symbolic.NET</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Sentry</Authors>
+    <Description>Cross-platform C++ symbol demangler for .NET, powered by symbolic</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/jpnurmi/Symbolic.NET</RepositoryUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <NoWarn>CA2255</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="build/Symbolic.NET.targets" Pack="true" PackagePath="build/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../runtimes/**/native/*" Pack="true" PackagePath="runtimes/">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>runtimes/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
+</Project>

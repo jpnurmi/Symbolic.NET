@@ -1,0 +1,205 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  native:
+    name: Native (${{ matrix.rid }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows (cargo, MSVC toolchain)
+          - { rid: win-x86,         os: windows-latest,   target: i686-pc-windows-msvc,           lib: symbolic_native.dll }
+          - { rid: win-x64,         os: windows-latest,   target: x86_64-pc-windows-msvc,         lib: symbolic_native.dll }
+          - { rid: win-arm64,       os: windows-11-arm,   target: aarch64-pc-windows-msvc,        lib: symbolic_native.dll }
+          # Linux glibc (cross)
+          - { rid: linux-x86,       os: ubuntu-latest,    target: i686-unknown-linux-gnu,         lib: libsymbolic_native.so,    cross: true }
+          - { rid: linux-x64,       os: ubuntu-latest,    target: x86_64-unknown-linux-gnu,       lib: libsymbolic_native.so,    cross: true }
+          - { rid: linux-arm,       os: ubuntu-latest,    target: armv7-unknown-linux-gnueabihf,  lib: libsymbolic_native.so,    cross: true }
+          - { rid: linux-arm64,     os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu,      lib: libsymbolic_native.so }
+          # Linux musl (cross)
+          - { rid: linux-musl-x86,  os: ubuntu-latest,    target: i686-unknown-linux-musl,        lib: libsymbolic_native.so,    cross: true }
+          - { rid: linux-musl-x64,  os: ubuntu-latest,    target: x86_64-unknown-linux-musl,      lib: libsymbolic_native.so,    cross: true }
+          - { rid: linux-musl-arm,  os: ubuntu-latest,    target: armv7-unknown-linux-musleabihf, lib: libsymbolic_native.so,    cross: true }
+          - { rid: linux-musl-arm64,os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl,     lib: libsymbolic_native.so,    cross: true }
+          # macOS (cargo)
+          - { rid: osx-x64,         os: macos-26-intel,   target: x86_64-apple-darwin,            lib: libsymbolic_native.dylib }
+          - { rid: osx-arm64,       os: macos-latest,     target: aarch64-apple-darwin,           lib: libsymbolic_native.dylib }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: native
+          key: ${{ matrix.target }}
+
+      - name: Install cross
+        if: matrix.cross
+        run: cargo install cross --locked
+
+      - name: Build (cross)
+        if: matrix.cross
+        working-directory: native
+        run: cross build --release --target ${{ matrix.target }}
+
+      - name: Build (cargo)
+        if: ${{ !matrix.cross }}
+        working-directory: native
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Prepare artifact
+        shell: bash
+        run: |
+          mkdir -p runtimes/${{ matrix.rid }}/native
+          cp native/target/${{ matrix.target }}/release/${{ matrix.lib }} runtimes/${{ matrix.rid }}/native/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.rid }}
+          path: runtimes/${{ matrix.rid }}
+          if-no-files-found: error
+
+  test:
+    name: Test (${{ matrix.rid }})
+    needs: native
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Native runners
+          - { rid: win-x64,     os: windows-latest }
+          - { rid: win-x86,     os: windows-latest }
+          - { rid: win-arm64,   os: windows-11-arm }
+          - { rid: linux-x64,   os: ubuntu-latest }
+          - { rid: linux-arm64, os: ubuntu-24.04-arm }
+          - { rid: osx-x64,     os: macos-26-intel }
+          - { rid: osx-arm64,   os: macos-latest }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-${{ matrix.rid }}
+          path: runtimes/${{ matrix.rid }}
+
+      - name: Test
+        run: dotnet test
+
+  test-docker:
+    name: Test (${{ matrix.rid }})
+    needs: native
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # x86 glibc via i386 Docker on x64 runner
+          - rid: linux-x86
+            runner: ubuntu-latest
+            image: i386/debian:bullseye-slim
+            setup: |
+              apt-get update && apt-get install -y wget
+              wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
+            path: /usr/share/dotnet
+          # ARM glibc via QEMU on x64 runner
+          - rid: linux-arm
+            runner: ubuntu-latest
+            image: arm32v7/debian:bullseye-slim
+            setup: |
+              apt-get update && apt-get install -y wget
+              wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
+            path: /usr/share/dotnet
+          # x86 musl via i386 Alpine on x64 runner
+          - rid: linux-musl-x86
+            runner: ubuntu-latest
+            image: i386/alpine:3.19
+            setup: |
+              apk add --no-cache bash wget icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib
+              wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
+            path: /usr/share/dotnet
+          # x64 musl via Alpine on x64 runner
+          - rid: linux-musl-x64
+            runner: ubuntu-latest
+            image: mcr.microsoft.com/dotnet/sdk:8.0-alpine
+            setup: ""
+            path: /usr/share/dotnet
+          # ARM musl via QEMU on x64 runner
+          - rid: linux-musl-arm
+            runner: ubuntu-latest
+            image: arm32v7/alpine:3.19
+            setup: |
+              apk add --no-cache bash wget icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib
+              wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
+            path: /usr/share/dotnet
+          # ARM64 musl via Alpine on native ARM64 runner
+          - rid: linux-musl-arm64
+            runner: ubuntu-24.04-arm
+            image: arm64v8/alpine:3.19
+            setup: |
+              apk add --no-cache bash wget icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib
+              wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet
+            path: /usr/share/dotnet
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        if: contains(matrix.image, 'arm')
+        uses: docker/setup-qemu-action@v3
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-${{ matrix.rid }}
+          path: runtimes/${{ matrix.rid }}
+
+      - name: Test
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/work" \
+            -w /work \
+            ${{ matrix.image }} \
+            sh -c '${{ matrix.setup }} && export PATH=${{ matrix.path }}:$PATH && dotnet test'
+
+  pack:
+    name: Pack NuGet
+    needs: [native, test, test-docker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: native-*
+          path: runtimes
+          merge-multiple: true
+
+      - name: Pack
+        run: dotnet pack src/Symbolic/Symbolic.csproj -c Release -o artifacts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget
+          path: artifacts/*.nupkg
+          if-no-files-found: error
