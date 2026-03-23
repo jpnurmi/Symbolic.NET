@@ -17,7 +17,6 @@ Supports demangling of:
 | linux-x64 | Linux (glibc) | x64 |
 | linux-arm | Linux (glibc) | ARM |
 | linux-arm64 | Linux (glibc) | ARM64 |
-| linux-musl-x86 | Linux (musl) | x86 |
 | linux-musl-x64 | Linux (musl) | x64 |
 | linux-musl-arm | Linux (musl) | ARM |
 | linux-musl-arm64 | Linux (musl) | ARM64 |
