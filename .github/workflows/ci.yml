@@ -116,7 +116,7 @@ jobs:
       matrix:
         include:
           - { rid: linux-x86,  runner: ubuntu-latest, platform: linux/386,    image: "debian:bookworm-slim" }
-          - { rid: linux-arm,  runner: ubuntu-latest, platform: linux/arm/v7, image: "debian:bookworm-slim", dotnet: true }
+          - { rid: linux-arm,  runner: ubuntu-latest, platform: linux/arm/v7, image: "debian:bookworm-slim" }
     steps:
       - uses: actions/checkout@v6
 
