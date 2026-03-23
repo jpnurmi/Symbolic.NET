@@ -97,7 +97,7 @@ jobs:
           path: runtimes/${{ matrix.rid }}
 
       - name: Test
-        run: dotnet test
+        run: dotnet test ${{ matrix.arch && format('-a {0}', matrix.arch) || '' }}
 
   test-docker:
     name: Test (${{ matrix.rid }})
