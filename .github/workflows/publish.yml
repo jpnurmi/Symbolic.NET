@@ -1,6 +1,8 @@
 name: Publish
 
 on:
+  issues:
+    types: [labeled]
   workflow_dispatch:
     inputs:
       version:
@@ -18,6 +20,15 @@ jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'issues' &&
+        github.event.label.name == 'accepted' &&
+        github.event.issue.state == 'open' &&
+        startsWith(github.event.issue.title, format('publish: {0}@', github.repository))
+      )
     steps:
       - uses: actions/checkout@v6
         with:
@@ -34,6 +45,25 @@ jobs:
       - name: Install Craft
         run: npm install --global @sentry/craft@2
 
+      - name: Resolve version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version || '' }}
+          ISSUE_TITLE: ${{ github.event.issue.title || '' }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "issues" ]]; then
+            version="${ISSUE_TITLE##*@}"
+          else
+            version="$INPUT_VERSION"
+          fi
+
+          if [[ -z "$version" ]]; then
+            echo "Could not resolve version to publish" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: NuGet login
         id: nuget-login
         uses: NuGet/login@v1
@@ -44,4 +74,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           NUGET_API_TOKEN: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
-        run: craft publish "${{ inputs.version }}" --no-input
+        run: craft publish "${{ steps.version.outputs.version }}" --no-input
