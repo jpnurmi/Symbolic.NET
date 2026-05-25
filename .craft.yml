@@ -1,0 +1,15 @@
+minVersion: 2.26.3
+changelog:
+  filePath: CHANGELOG.md
+  policy: auto
+artifactProvider:
+  name: github
+  config:
+    artifacts:
+      CI: nuget
+targets:
+  - name: nuget
+    includeNames: /^Symbolic\.NET\..*\.nupkg$/
+  - name: github
+    tagPrefix: v
+    includeNames: /^Symbolic\.NET\..*\.nupkg$/

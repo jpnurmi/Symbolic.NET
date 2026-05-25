@@ -6,14 +6,18 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Sentry</RootNamespace>
     <PackageId>Symbolic.NET</PackageId>
-    <Version>0.1.0</Version>
     <Authors>Sentry</Authors>
     <Description>Cross-platform C++ symbol demangler for .NET, powered by symbolic</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/jpnurmi/Symbolic.NET</RepositoryUrl>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <NoWarn>CA2255</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="../../runtimes/**/native/*" Pack="true" PackagePath="runtimes/">
