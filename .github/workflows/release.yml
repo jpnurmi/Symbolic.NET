@@ -16,6 +16,7 @@ on:
         default: 'false'
 
 permissions:
+  actions: write
   contents: write
   issues: write
   pull-requests: write
@@ -30,6 +31,7 @@ jobs:
           fetch-depth: 0
 
       - uses: getsentry/craft@v2
+        id: craft
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -37,3 +39,9 @@ jobs:
           merge_target: ${{ inputs.merge_target }}
           force: ${{ inputs.force }}
           publish_repo: self
+
+      - name: Trigger release CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BRANCH: ${{ steps.craft.outputs.branch }}
+        run: gh workflow run ci.yml --ref "$RELEASE_BRANCH"
