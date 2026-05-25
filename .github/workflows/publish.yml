@@ -64,14 +64,53 @@ jobs:
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
+      - name: Remove approval label
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --remove-label accepted
+
       - name: NuGet login
         id: nuget-login
         uses: NuGet/login@v1
         with:
           user: jpnurmi
 
+      - name: Set git user
+        env:
+          GIT_USER_NAME: ${{ github.actor }}
+          GIT_USER_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
+        run: |
+          git config user.name "$GIT_USER_NAME"
+          git config user.email "$GIT_USER_EMAIL"
+
       - name: Publish
         env:
           GITHUB_TOKEN: ${{ github.token }}
           NUGET_API_TOKEN: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: craft publish "${{ steps.version.outputs.version }}" --no-input
+
+      - name: Close publish issue
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: gh issue close "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --reason completed
+
+      - name: Comment on publish failure
+        if: failure() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          body=$(cat <<EOF
+          Publish workflow failed: ${RUN_URL}
+
+          The workflow removes the accepted label before publishing. Add it again after fixing the failure to retry.
+          EOF
+          )
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --body "$body"
