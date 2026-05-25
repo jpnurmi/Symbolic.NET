@@ -22,10 +22,18 @@ permissions:
 
 jobs:
   prepare:
-    uses: getsentry/craft/.github/workflows/release.yml@v2
-    with:
-      version: ${{ inputs.version }}
-      merge_target: ${{ inputs.merge_target }}
-      force: ${{ inputs.force }}
-      publish_repo: self
-    secrets: inherit
+    name: Prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: getsentry/craft@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          version: ${{ inputs.version }}
+          merge_target: ${{ inputs.merge_target }}
+          force: ${{ inputs.force }}
+          publish_repo: self
