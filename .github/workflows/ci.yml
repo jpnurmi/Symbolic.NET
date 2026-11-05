@@ -19,10 +19,10 @@ jobs:
           - { rid: win-x64,         os: windows-2025,     target: x86_64-pc-windows-msvc,         lib: symbolic_native.dll }
           - { rid: win-arm64,       os: windows-11-arm,   target: aarch64-pc-windows-msvc,        lib: symbolic_native.dll }
           # Linux glibc (cross)
-          - { rid: linux-x86,       os: ubuntu-24.04,     target: i686-unknown-linux-gnu,         lib: libsymbolic_native.so,    cross: true }
-          - { rid: linux-x64,       os: ubuntu-24.04,     target: x86_64-unknown-linux-gnu,       lib: libsymbolic_native.so,    cross: true }
-          - { rid: linux-arm,       os: ubuntu-24.04,     target: armv7-unknown-linux-gnueabihf,  lib: libsymbolic_native.so,    cross: true }
-          - { rid: linux-arm64,     os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu,      lib: libsymbolic_native.so }
+          - { rid: linux-x86,       os: ubuntu-26.04,     target: i686-unknown-linux-gnu,         lib: libsymbolic_native.so,    cross: true }
+          - { rid: linux-x64,       os: ubuntu-26.04,     target: x86_64-unknown-linux-gnu,       lib: libsymbolic_native.so,    cross: true }
+          - { rid: linux-arm,       os: ubuntu-26.04,     target: armv7-unknown-linux-gnueabihf,  lib: libsymbolic_native.so,    cross: true }
+          - { rid: linux-arm64,     os: ubuntu-26.04-arm, target: aarch64-unknown-linux-gnu,      lib: libsymbolic_native.so }
           # macOS (cargo)
           - { rid: osx-x64,         os: macos-26-intel,   target: x86_64-apple-darwin,            lib: libsymbolic_native.dylib }
           - { rid: osx-arm64,       os: macos-26,         target: aarch64-apple-darwin,           lib: libsymbolic_native.dylib }
@@ -80,8 +80,8 @@ jobs:
           - { rid: win-x64,     os: windows-2025 }
           - { rid: win-x86,     os: windows-2025, arch: x86 }
           - { rid: win-arm64,   os: windows-11-arm }
-          - { rid: linux-x64,   os: ubuntu-24.04 }
-          - { rid: linux-arm64, os: ubuntu-24.04-arm }
+          - { rid: linux-x64,   os: ubuntu-26.04 }
+          - { rid: linux-arm64, os: ubuntu-26.04-arm }
           - { rid: osx-x64,     os: macos-26-intel }
           - { rid: osx-arm64,   os: macos-26 }
     steps:
@@ -117,7 +117,7 @@ jobs:
       matrix:
         include:
           - { rid: linux-x86,  runner: ubuntu-24.04,  platform: linux/386,    image: "debian:bookworm-slim" }
-          - { rid: linux-arm,  runner: ubuntu-24.04,  platform: linux/arm/v7, image: "debian:bookworm-slim" }
+          - { rid: linux-arm,  runner: ubuntu-26.04,  platform: linux/arm/v7, image: "debian:bookworm-slim" }
     steps:
       - uses: actions/checkout@v7
 
@@ -176,7 +176,7 @@ jobs:
   pack:
     name: Pack NuGet
     needs: native
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
 
@@ -208,8 +208,8 @@ jobs:
       matrix:
         include:
           - { rid: win-x64,     os: windows-2025 }
-          - { rid: linux-x64,   os: ubuntu-24.04 }
-          - { rid: linux-arm64, os: ubuntu-24.04-arm }
+          - { rid: linux-x64,   os: ubuntu-26.04 }
+          - { rid: linux-arm64, os: ubuntu-26.04-arm }
           - { rid: osx-x64,     os: macos-26-intel }
           - { rid: osx-arm64,   os: macos-26 }
     steps:
