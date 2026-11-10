@@ -30,7 +30,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: getsentry/craft@v2
+      - uses: getsentry/craft@v3
         id: craft
         env:
           GITHUB_TOKEN: ${{ github.token }}
